@@ -1,8 +1,21 @@
+from clientworker import ClientHandler
+from block import BlockPacket, BlockType
+from typing import Dict
+
 import socket
 import json
+import uuid
 
-class Server:
+class ServerHandler:
+    instance = None
+
     def __init__(self):
+        if self.instance is not None:
+            print("Trying to create another server handler?")
+            pass    
+
+        self.instance = self
+        self.clients = Dict[uuid.UUID, ClientHandler]
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         self.ip = socket.gethostbyname(socket.gethostname())
@@ -12,41 +25,33 @@ class Server:
         
         print(f"Listening... {ip}:{port}")
 
-def extract_json_data_from_clientreq(full_string:str):
-    full_string = full_string.replace("{START_BLOCK}", "")
-    full_string = full_string.replace("{END_BLOCK}", "")
-    data = json.dumps(full_string)
-    print(f"Recieved: {data}")
+    def run(self):
+        while True:
+            cli, addr = self.s.accept()
+            id = uuid.UUID()
+            client_obj = ClientHandler(self, id, cli, addr)
+            client_obj.run()
 
-    return data
 
-while True:
-    cli, addr = s.accept()
-    connected = True
-    data = ""
-    print("connection recieved!")
+            client_obj.request_public_key()
+            if client_obj.public_key == None:
+                print("Failed to get public key from client.")
+                continue
 
-    while connected:
-        print(data)
-        try:
-            data_chunk = cli.recv(8)
-            if data_chunk == b"":
-                connected = False
+            self.relay_block_to_clients(BlockPacket.create_block_packet(
+                block_type=BlockType.SVR_RES_NEW_CONNECTION,
+                data={"id":id, "public_key":client_obj.public_key}
+            ))
 
-            data += data_chunk.decode()
-            
-            
-            if "{END_BLOCK}" in data:
-                get_json_data(data)
-                connected = False
-                break
-                
-        except Exception as e:
-            print(e)
-            connected = False
-            print("broken")
-            break
+            self.clients[id] = client_obj
 
-    print("Closing connection with client...")
-    cli.close()
+
+    def relay_block_to_clients(self, block:BlockPacket):
+        for c in self.clients:
+            c.send_block(block)
+
+
+    def send_block_to_client(self, id:uuid.UUID, block:BlockPacket):
+        cli:ClientHandler = self.clients.get(id)
+        cli.send_block(block)
 

@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 
 import javax.crypto.NoSuchPaddingException;
 
@@ -30,7 +31,6 @@ public class App extends Application {
     public void initBackgroundProcesses() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, UnknownHostException, IOException {
         this.encryptionHandler = new EncryptionHandler();
         this.clientHandler = new ClientConnectionHandler("127.0.1.1", 8000);
-
     }
 
     @Override
@@ -41,7 +41,12 @@ public class App extends Application {
             
             initBackgroundProcesses();
 
-            String data = SocketData.createSocketPacketData(SocketData.SocketType.TEST, null);
+            System.out.println("got here...");
+            HashMap keydata = new HashMap<String, String>();
+            keydata.put("public_key", EncryptionHandler.getInstance().getPublicKeyB64());
+            
+
+            String data = SocketData.createSocketPacketData(SocketData.BlockType.CLI_RES_PUB_KEY, keydata);
             this.clientHandler.sendRawDataToServer(data);
             System.out.println(":" + data.toString());
             // System.out.println(new String(data, "UTF8"));

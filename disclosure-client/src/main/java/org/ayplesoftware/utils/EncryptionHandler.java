@@ -7,6 +7,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Base64;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -17,13 +18,20 @@ import javax.crypto.NoSuchPaddingException;
 // TODO: Do more research into making this more secure
 
 public class EncryptionHandler {
-       
+    private static EncryptionHandler instance;
+
     private PrivateKey privateKey;
     private PublicKey publicKey;
     private Cipher encryptCipher;
     private Cipher decryptCipher;
     
     public EncryptionHandler() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
+        if (instance != null) {
+            return;
+        }
+
+        instance = this;
+
         KeyPairGenerator pairGenerator = KeyPairGenerator.getInstance("RSA");
         pairGenerator.initialize(1024);
 
@@ -32,10 +40,14 @@ public class EncryptionHandler {
         this.publicKey = keyPair.getPublic();
 
         this.encryptCipher = Cipher.getInstance("RSA/ECB/NoPadding");
-        this.encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        this.encryptCipher.init(Cipher.ENCRYPT_MODE, this.publicKey);
 
         this.decryptCipher = Cipher.getInstance("RSA/ECB/NoPadding");
-        this.decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
+        this.decryptCipher.init(Cipher.DECRYPT_MODE, this.privateKey);
+    }
+
+    public static EncryptionHandler getInstance() {
+        return instance;
     }
 
     public byte[] encryptString(byte[] message) throws IllegalBlockSizeException, BadPaddingException {
@@ -54,6 +66,15 @@ public class EncryptionHandler {
         decryptCipher.init(Cipher.ENCRYPT_MODE, key);
         decryptCipher.update(data);
         return new String(decryptCipher.doFinal(), "UTF8");
+    }
+
+    public PublicKey getPublicKeyObj() { return this.publicKey; }
+    public String getPublicKeyB64() { 
+        StringBuilder sb = new StringBuilder();
+        sb.append("-----BEGIN RSA PUBLIC KEY-----\n");
+        sb.append(Base64.getEncoder().encodeToString(this.publicKey.getEncoded())); 
+        sb.append("\n-----END RSA PUBLIC KEY-----\n");
+        return sb.toString();
     }
     
 }

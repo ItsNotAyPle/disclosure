@@ -6,11 +6,11 @@ import java.util.Map;
 import org.json.JSONObject;
 
 public class SocketData {
-    public static enum SocketType {
-        TEST,
-        SET_KEYS,
-        MESSAGE,
-        COMMAND
+    public static enum BlockType {
+        SVR_REQ_PUB_KEY,
+        CLI_RES_PUB_KEY, 
+        SVR_RES_NEW_CONNECTION,
+        MESSAGE 
     }
     
     // public static byte[] createSocketPacketData() {
@@ -23,7 +23,7 @@ public class SocketData {
     //     return builder.toString().getBytes();
     // }
 
-    public static String createSocketPacketData(SocketType type, Map<String, String> data) throws UnsupportedEncodingException {
+    public static String createSocketPacketData(BlockType type, Map<String, String> data) throws UnsupportedEncodingException {
         JSONObject jsonobj = new JSONObject();
         jsonobj.put("packet_type", type);
         jsonobj.put("data", data);
@@ -33,7 +33,7 @@ public class SocketData {
         sb.append(jsonobj.toString());
         sb.append("{END_BLOCK}");
 
-        System.out.println(sb.toString());
+        // System.out.println(sb.toString());
 
         return sb.toString();
     }
