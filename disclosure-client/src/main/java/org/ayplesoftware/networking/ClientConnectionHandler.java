@@ -17,15 +17,16 @@ import org.ayplesoftware.networking.SocketData.BlockType;
 // TODO: research streams better
 // TODO: make a networking manager in a seperate thread
 
-public class ClientConnectionHandler {
+public class ClientConnectionHandler extends Thread {
     private static ClientConnectionHandler instance;
     private HashMap<String, String> room_clients = new HashMap<String,String>(); // uuid -> pub_key
     private Socket socket;
     private String serverIp;
     private int port;
+    private boolean connected;
 
-    private DataInputStream inputStream;
-    private DataOutputStream outputStream;
+    private DataInputStream inputStream; // svr -> cli
+    private DataOutputStream outputStream; // cli -> svr
 
     public ClientConnectionHandler(String serverIp, int port) throws UnknownHostException, IOException {
         if (instance != null) {
@@ -35,8 +36,30 @@ public class ClientConnectionHandler {
         this.serverIp = serverIp;
         this.port = port;
         this.socket = new Socket(serverIp, port);
+        this.inputStream = new DataInputStream(socket.getInputStream());
         this.outputStream = new DataOutputStream(socket.getOutputStream());
+        this.connected = true;
+
     }
+
+    @Override
+    public void run() {
+        StringBuilder builder = new StringBuilder();
+        
+        while (true) {
+            try {
+                // TODO: double check this 'readNbytes', good solution?
+                builder.append(new String(this.inputStream.readNBytes(1), "UTF8"));
+                if (builder.toString().contains("{END_BLOCK}")) {
+                    // handle the block
+                    builder.setLength(0);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
 
     public void sendPublicKeyToServer() throws UnsupportedEncodingException {
         HashMap keydata = new HashMap<String, String>();

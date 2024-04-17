@@ -22,15 +22,18 @@ while True:
         if "{END_BLOCK}" in full_string:
             break
 
-    full_string = full_string.replace("{START_BLOCK}", "")
-    full_string = full_string.replace("{END_BLOCK}", "")
+    # full_string = full_string.replace("{START_BLOCK}", "")
+    # full_string = full_string.replace("{END_BLOCK}", "")
     
     try:
-        data = json.loads(full_string)
-        key = data['data']['public_key']
+        # data = json.loads(full_string)
+        # key = data['data']['public_key']
         # print(data)
         # print(key)
-        print(msg)
+        # print(msg)
+        print("sending data...")
+        cli.sendall(b"ABCdefgGKISJGI)SJIG)JSGLGKOPSKGSPI")
+        print("sent")
     except Exception as e:
         print(f"Exception: {e}")
         continue

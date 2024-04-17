@@ -2,11 +2,14 @@ package org.ayplesoftware.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 import javax.crypto.BadPaddingException;
@@ -50,6 +53,17 @@ public class EncryptionHandler {
         return instance;
     }
 
+    // https://www.baeldung.com/java-read-pem-file-keys
+    // TODO: test this, dont think it will work at all
+    public byte[] encryptStringWithKey(byte[] message, byte[] key) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, NoSuchPaddingException{
+        Cipher cipher = Cipher.getInstance("RSA/ECB/NoPadding");
+        KeyFactory factory = KeyFactory.getInstance("RSA");
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getEncoder().encode(key));
+        cipher.init(Cipher.ENCRYPT_MODE, factory.generatePublic(keySpec));
+        cipher.update(message);
+        return cipher.doFinal();
+    }
+
     public byte[] encryptString(byte[] message) throws IllegalBlockSizeException, BadPaddingException {
         this.encryptCipher.update(message);
         return this.encryptCipher.doFinal();
@@ -71,9 +85,9 @@ public class EncryptionHandler {
     public PublicKey getPublicKeyObj() { return this.publicKey; }
     public String getPublicKeyB64() { 
         StringBuilder sb = new StringBuilder();
-        sb.append("-----BEGIN RSA PUBLIC KEY-----\n");
+        // sb.append("-----BEGIN RSA PUBLIC KEY-----\n");
         sb.append(Base64.getEncoder().encodeToString(this.publicKey.getEncoded())); 
-        sb.append("\n-----END RSA PUBLIC KEY-----\n");
+        // sb.append("\n-----END RSA PUBLIC KEY-----\n");
         return sb.toString();
     }
     

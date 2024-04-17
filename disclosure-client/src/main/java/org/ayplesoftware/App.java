@@ -31,6 +31,7 @@ public class App extends Application {
     public void initBackgroundProcesses() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, UnknownHostException, IOException {
         this.encryptionHandler = new EncryptionHandler();
         this.clientHandler = new ClientConnectionHandler("127.0.1.1", 8000);
+        this.clientHandler.start();
     }
 
     @Override
