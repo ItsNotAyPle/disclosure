@@ -8,6 +8,13 @@ s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 s.bind((socket.gethostbyname(socket.gethostname()), 8000))
 s.listen()
 
+def create_block_packet(block_type:str, data:dict) -> str:
+    full_string = "{START_BLOCK}"
+    full_string += json.dumps({"packet_type":block_type, "data":data})
+    full_string += "{END_BLOCK}"
+    
+    return full_string
+
 
 while True:
     cli, addr = s.accept()
@@ -31,8 +38,9 @@ while True:
         # print(data)
         # print(key)
         # print(msg)
-        print("sending data...")
-        cli.sendall(b"ABCdefgGKISJGI)SJIG)JSGLGKOPSKGSPI")
+        # print("sending data...")
+        # cli.send(create_block_packet("TEST1", None).encode())
+        # cli.send(create_block_packet("TEST2", None).encode())
         print("sent")
     except Exception as e:
         print(f"Exception: {e}")

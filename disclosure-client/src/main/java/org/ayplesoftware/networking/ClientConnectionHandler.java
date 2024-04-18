@@ -50,14 +50,19 @@ public class ClientConnectionHandler extends Thread {
             try {
                 // TODO: double check this 'readNbytes', good solution?
                 builder.append(new String(this.inputStream.readNBytes(1), "UTF8"));
-                if (builder.toString().contains("{END_BLOCK}")) {
-                    // handle the block
+
+                if (builder.toString().endsWith("{END_BLOCK}")) {
+                    exectuteBlock(builder.toString());
                     builder.setLength(0);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void exectuteBlock(String blockdata) {
+        System.out.println("Recieved data: " + blockdata);
     }
     
 
