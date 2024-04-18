@@ -1,5 +1,3 @@
-from Crypto.PublicKey import RSA
-
 import socket
 import json
 
@@ -22,7 +20,7 @@ while True:
     full_string = ""
     
     while True:
-        cli_data = cli.recv(8)
+        cli_data = cli.recv(1)
         if (cli_data == b""): break
         
         full_string += cli_data.decode()
