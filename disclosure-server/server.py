@@ -23,27 +23,26 @@ class ServerHandler:
         self.s.bind((self.ip, self.port))
         self.s.listen()
         
-        print(f"Listening... {ip}:{port}")
+        print(f"Listening... {self.ip}:{self.port}")
 
     def run(self):
         while True:
+            print("Awaiting new connection...")
             cli, addr = self.s.accept()
-            id = uuid.UUID()
+            id = uuid.uuid4()
             client_obj = ClientHandler(self, id, cli, addr)
-            client_obj.run()
+            client_obj.start()
+            
 
 
-            client_obj.request_public_key()
-            if client_obj.public_key == None:
-                print("Failed to get public key from client.")
-                continue
 
-            self.relay_block_to_clients(BlockPacket.create_block_packet(
-                block_type=BlockType.SVR_RES_NEW_CONNECTION,
-                data={"id":id, "public_key":client_obj.public_key}
-            ))
+            # print("gothere2")
+            # self.relay_block_to_clients(BlockPacket.create_block_packet(
+            #     block_type=BlockType.SVR_RES_NEW_CONNECTION,
+            #     data={"id":id, "public_key":client_obj.public_key}
+            # ))
 
-            self.clients[id] = client_obj
+            # self.clients[id] = client_obj
 
 
     def relay_block_to_clients(self, block:BlockPacket):

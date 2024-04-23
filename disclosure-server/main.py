@@ -8,4 +8,4 @@ class Main:
         return self.__server_instance
 
 if __name__ == '__main__': 
-    Main()
+    Main().get_server_instance().run()

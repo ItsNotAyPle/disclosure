@@ -5,12 +5,14 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONObject;
+// import org.json.JsonSerializer;
 
 import org.ayplesoftware.utils.EncryptionHandler;
 import org.ayplesoftware.networking.SocketData.BlockType;
@@ -35,6 +37,7 @@ public class ClientConnectionHandler extends Thread {
             return;
         }
         
+        ClientConnectionHandler.instance = this;
         this.serverIp = serverIp;
         this.port = port;
         this.socket = new Socket(serverIp, port);
@@ -48,7 +51,7 @@ public class ClientConnectionHandler extends Thread {
     public void run() {
         StringBuilder builder = new StringBuilder();
         
-        while (true) {
+        while (this.connected) {
             try {
                 // TODO: double check this 'readNbytes', good solution?
                 builder.append(new String(this.inputStream.readNBytes(1), "UTF8"));
@@ -69,19 +72,27 @@ public class ClientConnectionHandler extends Thread {
                     exectuteBlock(builder.toString());
                     builder.setLength(0);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+
+                // this is pissing me off
+            } catch (IOException e) {
+                try {
+                    this.disconnect();
+                } catch (Exception e2) {
+                    e2.printStackTrace();
+                } 
+            } 
         }
     }
 
-    private void exectuteBlock(String blockdata) {
+    private void exectuteBlock(String blockdata) throws UnsupportedEncodingException, IOException {
         // System.out.println("Recieved data: " + blockdata);
 
-        blockdata.replace("{START_BLOCK}", "");
-        blockdata.replace("{END_BLOCK}", "");
-        JSONObject jsonobj = JSONSerializer.toJSON(blockdata);
-        String blockType = jsonobj.getString("packet_type");
+        blockdata = blockdata.replace("{START_BLOCK}", "");
+        blockdata = blockdata.replace("{END_BLOCK}", "");
+        // JSONObject jsonobj = JSONSerializer.toJSON(blockdata);
+        System.out.println(blockdata);
+        JSONObject jsonobj = new JSONObject(blockdata);
+        BlockType blockType = BlockType.valueOf(jsonobj.getString("packet_type"));
         JSONObject data = jsonobj.getJSONObject("data");
 
         // todo: move this as a class variable to not have to create a new one
@@ -89,20 +100,22 @@ public class ClientConnectionHandler extends Thread {
         HashMap<String, String> dataToSend = new HashMap<String,String>();
 
         switch (blockType) {
-            case SocketData.BlockType.SVR_REQ_PUB_KEY:
-                System.out.println("Sending public key to server...");
-                dataToSend.put("public_key", EncryptionHandler.getInstance().getPublicKeyB64());
-                SocketData.createSocketPacketData(SocketData.BlockType.CLI_RES_PUB_KEY, dataToSend);
+            case SVR_REQ_PUB_KEY:
+                // System.out.println("Sending public key to server...");
+                // dataToSend.put("public_key", EncryptionHandler.getInstance().getPublicKeyB64());
+                // String block_to_send = SocketData.createSocketPacketData(SocketData.BlockType.CLI_RES_PUB_KEY, dataToSend);
+                // this.sendRawDataToServer(data);
+                this.sendPublicKeyToServer();
                 break;
             
-            case SocketData.BlockType.SVR_RES_NEW_CONNECTION:
+            case SVR_RES_NEW_CONNECTION:
                 String id = data.getString("id");
                 String public_key = data.getString("public_key");
                 this.room_clients.put(id, public_key);
                 System.out.println("Storing id [" + id + "] to publickey: [" + public_key + "]");
                 break;
 
-            case SocketData.BlockType.MESSAGE:
+            case MESSAGE:
                 break;
 
             default:
@@ -111,11 +124,26 @@ public class ClientConnectionHandler extends Thread {
 
     }
     
+    public void sendUserMessageToServer(String message) {
+        try {
+            byte[] encryptedMsg = EncryptionHandler.getInstance().encryptString(message.getBytes());
+            HashMap keydata = new HashMap<String, String>();
+            keydata.put("to", "");
+            keydata.put("from", "");
+            keydata.put("message", encryptedMsg);
+            String data = SocketData.createSocketPacketData(BlockType.MESSAGE, keydata);
+            this.sendRawDataToServer(data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-    public void sendPublicKeyToServer() throws UnsupportedEncodingException {
+    public void sendPublicKeyToServer() throws UnsupportedEncodingException, IOException {
+        System.out.println("sending public key to server...");
         HashMap keydata = new HashMap<String, String>();
         keydata.put("public_key", EncryptionHandler.getInstance().getPublicKeyB64());
-        SocketData.createSocketPacketData(BlockType.CLI_RES_PUB_KEY, keydata);
+        String data = SocketData.createSocketPacketData(BlockType.CLI_RES_PUB_KEY, keydata);
+        this.sendRawDataToServer(data);
     }
 
     // public void sendRawDataToServer(byte[] data) throws IOException {
@@ -125,13 +153,16 @@ public class ClientConnectionHandler extends Thread {
     // }
 
     public void sendRawDataToServer(String data) throws IOException {
-        System.out.println("writing bytes to server...");
+        System.out.println("writing bytes to server... " + data);
         this.outputStream.writeBytes(data);
         this.outputStream.flush();
     }
 
 
+    // TODO: callback feature
     public void disconnect() throws IOException {
+        System.out.println("-[]-[]-[]--][-][-][-][]- Disconnected!");
+        this.connected = false;
         this.socket.close();
         this.inputStream.close();
         this.outputStream.close();

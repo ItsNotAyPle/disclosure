@@ -42,14 +42,10 @@ public class App extends Application {
             
             initBackgroundProcesses();
 
-            System.out.println("got here...");
-            HashMap keydata = new HashMap<String, String>();
-            keydata.put("public_key", EncryptionHandler.getInstance().getPublicKeyB64());
+            // this.clientHandler.sendPublicKeyToServer();
+            this.clientHandler.sendUserMessageToServer("test123");
             
 
-            String data = SocketData.createSocketPacketData(SocketData.BlockType.CLI_RES_PUB_KEY, keydata);
-            this.clientHandler.sendRawDataToServer(data);
-            System.out.println(":" + data.toString());
             // System.out.println(new String(data, "UTF8"));
 
             // var scene = new Scene(new StackPane(), 640, 480);
