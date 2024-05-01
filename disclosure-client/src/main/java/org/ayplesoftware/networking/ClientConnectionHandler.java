@@ -10,8 +10,10 @@ import java.net.UnknownHostException;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
+// import java.util.Queue;
 
 import org.json.JSONObject;
+import org.json.JSONException;
 // import org.json.JsonSerializer;
 
 import org.ayplesoftware.utils.EncryptionHandler;
@@ -28,6 +30,8 @@ public class ClientConnectionHandler extends Thread {
     private String serverIp;
     private int port;
     private boolean connected;
+    public boolean recieved_thumbs_up; // mmmmmmmmmmm
+    // private Queue<String> blocks_to_send = new Queue<String>();
 
     private DataInputStream inputStream; // svr -> cli
     private DataOutputStream outputStream; // cli -> svr
@@ -44,6 +48,7 @@ public class ClientConnectionHandler extends Thread {
         this.inputStream = new DataInputStream(socket.getInputStream());
         this.outputStream = new DataOutputStream(socket.getOutputStream());
         this.connected = true;
+        this.recieved_thumbs_up = false;
 
     }
 
@@ -90,14 +95,20 @@ public class ClientConnectionHandler extends Thread {
         blockdata = blockdata.replace("{START_BLOCK}", "");
         blockdata = blockdata.replace("{END_BLOCK}", "");
         // JSONObject jsonobj = JSONSerializer.toJSON(blockdata);
-        System.out.println(blockdata);
+        // System.out.println(blockdata);
         JSONObject jsonobj = new JSONObject(blockdata);
         BlockType blockType = BlockType.valueOf(jsonobj.getString("packet_type"));
-        JSONObject data = jsonobj.getJSONObject("data");
+
+        JSONObject data;
+        try {
+            data = jsonobj.getJSONObject("data");
+        } catch (JSONException e) {
+            data = null;            
+        }
 
         // todo: move this as a class variable to not have to create a new one
         // on every incoming block
-        HashMap<String, String> dataToSend = new HashMap<String,String>();
+        // HashMap<String, String> dataToSend = new HashMap<String,String>();
 
         switch (blockType) {
             case SVR_REQ_PUB_KEY:
@@ -107,12 +118,19 @@ public class ClientConnectionHandler extends Thread {
                 // this.sendRawDataToServer(data);
                 this.sendPublicKeyToServer();
                 break;
+
+
             
             case SVR_RES_NEW_CONNECTION:
                 String id = data.getString("id");
                 String public_key = data.getString("public_key");
                 this.room_clients.put(id, public_key);
                 System.out.println("Storing id [" + id + "] to publickey: [" + public_key + "]");
+                break;
+            
+            case SVR_RES_RECV_PUB_KEY:
+                System.out.println("Recieved thumbs up from server!");
+                this.recieved_thumbs_up = true;    
                 break;
 
             case MESSAGE:
@@ -132,6 +150,7 @@ public class ClientConnectionHandler extends Thread {
             keydata.put("from", "");
             keydata.put("message", encryptedMsg);
             String data = SocketData.createSocketPacketData(BlockType.MESSAGE, keydata);
+            // this.blocks.add(data);
             this.sendRawDataToServer(data);
         } catch (Exception e) {
             e.printStackTrace();
@@ -143,6 +162,7 @@ public class ClientConnectionHandler extends Thread {
         HashMap keydata = new HashMap<String, String>();
         keydata.put("public_key", EncryptionHandler.getInstance().getPublicKeyB64());
         String data = SocketData.createSocketPacketData(BlockType.CLI_RES_PUB_KEY, keydata);
+        // this.blocks.add(data);
         this.sendRawDataToServer(data);
     }
 

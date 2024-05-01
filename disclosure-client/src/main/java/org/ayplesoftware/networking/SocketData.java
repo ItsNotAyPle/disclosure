@@ -9,8 +9,9 @@ public class SocketData {
     public static enum BlockType {
         SVR_REQ_PUB_KEY,
         CLI_RES_PUB_KEY, 
+        SVR_RES_RECV_PUB_KEY,
         SVR_RES_NEW_CONNECTION,
-        MESSAGE 
+        MESSAGE
     }
     
     // public static byte[] createSocketPacketData() {

@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.Scanner;
 
 import javax.crypto.NoSuchPaddingException;
 
@@ -26,12 +27,12 @@ import javafx.stage.Stage;
 public class App extends Application {
 
     private EncryptionHandler encryptionHandler;
-    private ClientConnectionHandler clientHandler;
+    // private ClientConnectionHandler clientHandler;
 
     public void initBackgroundProcesses() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, UnknownHostException, IOException {
         this.encryptionHandler = new EncryptionHandler();
-        this.clientHandler = new ClientConnectionHandler("127.0.1.1", 8000);
-        this.clientHandler.start();
+        // this.clientHandler = new ClientConnectionHandler("127.0.1.1", 8000);
+        // this.clientHandler.start();
     }
 
     @Override
@@ -42,15 +43,10 @@ public class App extends Application {
             
             initBackgroundProcesses();
 
-            // this.clientHandler.sendPublicKeyToServer();
-            this.clientHandler.sendUserMessageToServer("test123");
-            
 
-            // System.out.println(new String(data, "UTF8"));
-
-            // var scene = new Scene(new StackPane(), 640, 480);
-            // stage.setScene(scene);
-            // stage.show();
+            var scene = new Scene(new StackPane(), 640, 480);
+            stage.setScene(scene);
+            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
         }

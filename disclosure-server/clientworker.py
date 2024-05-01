@@ -30,7 +30,8 @@ class ClientHandler(threading.Thread):
         self.cli.close()
 
     def send_block(self, block:BlockPacket):
-        self.cli.sendall(block.prepare_block())
+        self.cli.sendall(block.encode())
+        pass
 
     def request_public_key(self):
         self.cli.sendall(BlockPacket.create_block_packet(BlockType.SVR_REQ_PUB_KEY, {}).encode())
@@ -49,6 +50,7 @@ class ClientHandler(threading.Thread):
 
         if blockdata.block_type == BlockType.CLI_RES_PUB_KEY:
             self.public_key = json_data['public_key']
+            self.send_block(BlockPacket.create_block_packet(BlockType.SVR_RES_RECV_PUB_KEY, None))
             # print(f"Recieved public key from client [{self.public_key}]")
             return
 
