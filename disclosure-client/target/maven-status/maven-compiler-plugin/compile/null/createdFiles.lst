@@ -1,5 +1,8 @@
 org/ayplesoftware/App.class
 module-info.class
+org/ayplesoftware/frontend/CommandHandler.class
+org/ayplesoftware/frontend/MainWindow$1.class
+org/ayplesoftware/frontend/MainWindow.class
 org/ayplesoftware/networking/SocketData$BlockType.class
 org/ayplesoftware/networking/ClientConnectionHandler$1.class
 org/ayplesoftware/networking/ClientConnectionHandler.class

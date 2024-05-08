@@ -1,6 +1,8 @@
 /home/adam/Desktop/disclosure/disclosure-client/src/main/java/org/ayplesoftware/networking/SocketData.java
 /home/adam/Desktop/disclosure/disclosure-client/src/main/java/org/ayplesoftware/SystemInfo.java
+/home/adam/Desktop/disclosure/disclosure-client/src/main/java/org/ayplesoftware/frontend/CommandHandler.java
 /home/adam/Desktop/disclosure/disclosure-client/src/main/java/org/ayplesoftware/App.java
 /home/adam/Desktop/disclosure/disclosure-client/src/main/java/module-info.java
 /home/adam/Desktop/disclosure/disclosure-client/src/main/java/org/ayplesoftware/utils/EncryptionHandler.java
+/home/adam/Desktop/disclosure/disclosure-client/src/main/java/org/ayplesoftware/frontend/MainWindow.java
 /home/adam/Desktop/disclosure/disclosure-client/src/main/java/org/ayplesoftware/networking/ClientConnectionHandler.java
